@@ -21,7 +21,7 @@ enum DeepSeekUsageMapper {
         }
     }
 
-    /// Validate at the API boundary. Prefer USD without adding or converting balances across currencies.
+    /// Prefer a funded currency, with USD first when both have funds. Never add or convert currencies.
     static func balance(from body: Data) throws -> Balance {
         guard let object = ProviderParse.jsonObject(body),
               let availability = object["is_available"] as? NSNumber,
@@ -29,17 +29,20 @@ enum DeepSeekUsageMapper {
               let infos = object["balance_infos"] as? [[String: Any]], !infos.isEmpty else {
             throw DeepSeekUsageError.invalidResponse
         }
-        guard let info = infos.first(where: { $0["currency"] as? String == "USD" })
-                ?? infos.first(where: { $0["currency"] as? String == "CNY" }),
-              let currency = info["currency"] as? String else {
+        let balances = try ["USD", "CNY"].compactMap { currency -> Balance? in
+            guard let info = infos.first(where: { $0["currency"] as? String == currency }) else { return nil }
+            guard let total = ProviderParse.number(info["total_balance"]),
+                  let paid = ProviderParse.number(info["topped_up_balance"]),
+                  let granted = ProviderParse.number(info["granted_balance"]) else {
+                throw DeepSeekUsageError.invalidResponse
+            }
+            return Balance(currency: currency, total: total, paid: paid, granted: granted,
+                           isAvailable: availability.boolValue)
+        }
+        guard let balance = balances.first(where: { $0.total > 0 })
+                ?? balances.first(where: { $0.total != 0 }) ?? balances.first else {
             throw DeepSeekUsageError.unsupportedCurrency
         }
-        guard let total = ProviderParse.number(info["total_balance"]),
-              let paid = ProviderParse.number(info["topped_up_balance"]),
-              let granted = ProviderParse.number(info["granted_balance"]) else {
-            throw DeepSeekUsageError.invalidResponse
-        }
-        return Balance(currency: currency, total: total, paid: paid, granted: granted,
-                       isAvailable: availability.boolValue)
+        return balance
     }
 }

@@ -73,6 +73,31 @@ final class DeepSeekUsageMapperTests: XCTestCase {
         XCTAssertNotNil(fundedButUnavailable.warning)
     }
 
+    func testFundedCNYIsNotHiddenByEmptyUSDRegardlessOfOrder() throws {
+        let zeroUSD = balanceInfo(total: "0.00", paid: "0.00", granted: "0.00")
+        let fundedCNY = balanceInfo(currency: "CNY", total: "17.25", paid: "16.00", granted: "1.25")
+        for infos in [[zeroUSD, fundedCNY], [fundedCNY, zeroUSD]] {
+            let balance = try DeepSeekUsageMapper.balance(from: fixture(infos: infos))
+            XCTAssertEqual(balance.currency, "CNY")
+            XCTAssertEqual(balance.total, 17.25)
+            XCTAssertEqual(balance.paid, 16.00)
+            XCTAssertEqual(balance.granted, 1.25)
+        }
+    }
+
+    func testZeroCurrenciesPreferUSDAndDoNotHideSignedBalances() throws {
+        let zeroUSD = balanceInfo(total: "0", paid: "0", granted: "0")
+        let zeroCNY = balanceInfo(currency: "CNY", total: "0", paid: "0", granted: "0")
+        let zero = try DeepSeekUsageMapper.balance(from: fixture(available: false, infos: [zeroCNY, zeroUSD]))
+        XCTAssertEqual(zero.currency, "USD")
+        XCTAssertEqual(zero.total, 0)
+        let deficit = try DeepSeekUsageMapper.balance(from: fixture(available: false, infos: [
+            zeroUSD, balanceInfo(currency: "CNY", total: "-0.01", paid: "-0.01", granted: "0")
+        ]))
+        XCTAssertEqual(deficit.currency, "CNY")
+        XCTAssertEqual(deficit.total, -0.01)
+    }
+
     func testCNYRetainsRawAmountAndExplicitCurrency() throws {
         let balance = try DeepSeekUsageMapper.balance(from: fixture(infos: [balanceInfo(currency: "CNY")]))
         XCTAssertEqual(balance.currency, "CNY")
@@ -208,7 +233,7 @@ final class DeepSeekProviderTests: XCTestCase {
         let row = store.data(for: provider.widgetDescriptors[0])
         XCTAssertEqual(row.headline, "CNY 8.76")
         XCTAssertEqual(row.unboundedDetail, "CNY 8.76 left")
-        XCTAssertEqual(row.menuBarValue, "CNY 9")
+        XCTAssertEqual(row.menuBarValue, "CNY 8.76")
         XCTAssertNil(row.limit)
         let snapshot = await provider.refresh()
         let restored = try JSONDecoder().decode(ProviderSnapshot.self, from: JSONEncoder().encode(snapshot))
@@ -238,6 +263,25 @@ final class DeepSeekProviderTests: XCTestCase {
         XCTAssertEqual(provider.apiKeyStatus, .overrideActive)
         try provider.deleteAPIKey()
         XCTAssertEqual(provider.currentAPIKey(), "test-key")
+    }
+
+    func testSmallBalancesRetainCentsInRealMenuBarContent() async throws {
+        for currency in ["USD", "CNY"] {
+            let body = fixture(infos: [balanceInfo(currency: currency, total: "0.42", paid: "0.42", granted: "0")])
+            let provider = makeProvider(http: RoutingHTTPClient { _ in HTTPResponse(statusCode: 200, headers: [:], body: body) })
+            let defaults = makeUserDefaults("small-balance-\(currency)")
+            let store = WidgetDataStore(
+                registry: WidgetRegistry.from([provider]), providers: [provider],
+                cache: ProviderSnapshotCache(userDefaults: defaults, storageKey: "snapshots", ttl: 600, now: Date.init),
+                defaults: defaults
+            )
+            await store.refreshAll()
+            let content = MenuBarContentBuilder.build(
+                groups: [ProviderMetrics(provider: provider.provider, metrics: [provider.widgetDescriptors[0]])],
+                data: { store.data(for: $0) }
+            )
+            XCTAssertEqual(content.groups.first?.metrics.first?.value, currency == "USD" ? "$0.42" : "CNY 0.42")
+        }
     }
 
     /// Uses the same resolved rows and SwiftUI card as the app's Share Screenshot action.

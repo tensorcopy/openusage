@@ -77,6 +77,9 @@ struct WidgetData: Hashable {
     /// Rate Limit Resets → "2 resets"). Set by the descriptor, so renaming the tile can't silently drop
     /// the suffix — replaces matching on the tile's title. `nil` for tiles that show the bare value.
     var traySuffix: String?
+    /// Keep cents on monetary balance pins so a small positive balance never rounds to zero.
+    /// Opted into by the descriptor; other menu-bar values retain their compact formatting.
+    var menuBarKeepsCents: Bool = false
     /// Session-window meters (Claude/OpenCode rolling 5-hour pools, Antigravity's pools) that read
     /// "Not started" while the window hasn't begun — the value names the signal that detects that state,
     /// because the providers report fresh windows differently (see `SessionStartSignal`). Set by those
@@ -260,7 +263,7 @@ struct WidgetData: Hashable {
             if let traySuffix, first.kind == .count {
                 return "\(MetricFormatter.number(first.number, kind: .count, style: .tray)) \(traySuffix)"
             }
-            return MetricFormatter.string(for: first, style: .tray)
+            return MetricFormatter.string(for: first, style: menuBarKeepsCents && first.kind == .dollars ? .row : .tray)
         }
         if let valueTextOverride { return valueTextOverride }
         let number = MetricFormatter.number(displayedValue, kind: kind, style: .tray)

@@ -129,11 +129,13 @@ extension WidgetDescriptor {
         provider: Provider,
         title: String,
         metricLabel: String? = nil,
-        valueWord: String
+        valueWord: String,
+        menuBarKeepsCents: Bool = false
     ) -> WidgetDescriptor {
-        make(id: id, provider: provider, metricLabel: metricLabel ?? title,
-             sample: WidgetData(title: title, icon: provider.icon,
-                                kind: .dollars, used: 0, limit: nil, unboundedValueWord: valueWord))
+        var sample = WidgetData(title: title, icon: provider.icon,
+                                kind: .dollars, used: 0, limit: nil, unboundedValueWord: valueWord)
+        sample.menuBarKeepsCents = menuBarKeepsCents
+        return make(id: id, provider: provider, metricLabel: metricLabel ?? title, sample: sample)
     }
 
     /// Unbounded count resolved from a provider `.badge` line via `valueTextOverride`

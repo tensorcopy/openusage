@@ -25,11 +25,11 @@ final class DeepSeekProvider: ProviderRuntime {
 
     var widgetDescriptors: [WidgetDescriptor] {
         [
-            .dollarBalance(id: "deepseek.balance", provider: provider, title: "Balance", valueWord: "left")
+            .dollarBalance(id: "deepseek.balance", provider: provider, title: "Balance", valueWord: "left", menuBarKeepsCents: true)
                 .exportingLimit("balance", kind: .balance, unit: "usd", source: .value(kind: .dollars)),
-            .dollarBalance(id: "deepseek.paid", provider: provider, title: "Paid", valueWord: "left")
+            .dollarBalance(id: "deepseek.paid", provider: provider, title: "Paid", valueWord: "left", menuBarKeepsCents: true)
                 .exportingLimit("paid", kind: .balance, unit: "usd", source: .value(kind: .dollars)),
-            .dollarBalance(id: "deepseek.granted", provider: provider, title: "Granted", valueWord: "left")
+            .dollarBalance(id: "deepseek.granted", provider: provider, title: "Granted", valueWord: "left", menuBarKeepsCents: true)
                 .exportingLimit("granted", kind: .balance, unit: "usd", source: .value(kind: .dollars))
         ]
     }
