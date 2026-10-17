@@ -68,6 +68,7 @@ final class StatusItemImageUpdater {
         }
         let content = MenuBarContentBuilder.build(
             groups: container.layout.pinnedGroups,
+            truncateDecimals: container.layout.menuBarTruncatesDecimals,
             data: { container.dataStore.data(for: $0) }
         )
         return MenuBarStripRenderer.image(for: content, style: container.layout.menuBarStyle)

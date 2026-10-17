@@ -16,6 +16,9 @@ label in the dashboard and `¥` in the menu bar; currencies are never added toge
 A measured zero displays as zero. Menu-bar pins keep cents, so balances below one dollar or yuan
 remain visible. These are unbounded balances, so there is no quota meter or reset countdown.
 
+To remove decimals from pinned balances, turn on **Settings → Appearance → Hide Menu Bar Decimals**.
+It truncates toward zero (`¥7.99` → `¥7`); dashboard balances and API/CLI exports stay precise.
+
 All three metrics are enabled by default, in the order above. Balance is Always Visible; Paid and
 Granted are On Demand. None are pinned to the menu bar by default.
 

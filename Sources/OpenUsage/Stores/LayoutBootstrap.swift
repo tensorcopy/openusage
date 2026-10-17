@@ -19,6 +19,7 @@ struct LayoutInitialState {
     let expandedProviderIDs: Set<String>
     let defaultExpandedOnEnableIDs: Set<String>
     let menuBarStyle: MenuBarStyle
+    let menuBarTruncatesDecimals: Bool
 
     let shouldPersistPlaced: Bool
     let shouldPersistExpanded: Bool
@@ -117,6 +118,7 @@ enum LayoutBootstrap {
             expandedProviderIDs: expandedProviderIDs,
             defaultExpandedOnEnableIDs: defaultExpandedOnEnableIDs,
             menuBarStyle: persistence.loadMenuBarStyle(),
+            menuBarTruncatesDecimals: persistence.loadMenuBarTruncatesDecimals(),
             shouldPersistPlaced: seededResult.shouldPersistPlaced,
             shouldPersistExpanded: shouldPersistExpanded,
             shouldPersistExpandOnEnable: savedOnEnable == nil || !promotedQueuedIDs.isEmpty,

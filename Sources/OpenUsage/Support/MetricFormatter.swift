@@ -22,7 +22,10 @@ enum MetricFormatter {
     private static let locale = Locale(identifier: "en_US")
 
     /// A bare number in the given kind and style (no unit label).
-    static func number(_ value: Double, kind: MetricKind, style: Style) -> String {
+    static func number(_ value: Double, kind: MetricKind, style: Style, truncatingDecimals: Bool = false) -> String {
+        if style == .tray, truncatingDecimals, kind != .percent {
+            return (kind == .dollars ? "$" : "") + truncatedTrayAmount(value)
+        }
         switch kind {
         case .percent:
             // Percent is a bounded 0...100 domain, so clamp defensively: a bad sample (a provider
@@ -57,7 +60,13 @@ enum MetricFormatter {
 
     /// Currency-aware reading. CNY uses its compact symbol in the tray and an explicit code elsewhere.
     /// Balance pins can keep cents without changing the tray's currency symbol or other money pins.
-    static func number(for value: MetricValue, style: Style, keepingCents: Bool = false) -> String {
+    static func number(for value: MetricValue, style: Style, keepingCents: Bool = false, truncatingDecimals: Bool = false) -> String {
+        if style == .tray, truncatingDecimals {
+            if value.kind == .dollars, let code = value.currencyCode, code != "USD" {
+                return (code == "CNY" ? "¥" : "\(code) ") + truncatedTrayAmount(value.number)
+            }
+            return number(value.number, kind: value.kind, style: style, truncatingDecimals: true)
+        }
         let amountStyle: Style = style == .tray && keepingCents ? .row : style
         guard value.kind == .dollars, let code = value.currencyCode, code != "USD" else {
             return number(value.number, kind: value.kind, style: value.kind == .dollars ? amountStyle : style)
@@ -74,10 +83,20 @@ enum MetricFormatter {
 
     /// A value with its unit label appended, e.g. "772 credits". Token, dollar, and percent values
     /// carry no label and render bare ("56.9M", "$4.08", "95%") — those rows show no unit, by design.
-    static func string(for value: MetricValue, style: Style, keepingCents: Bool = false) -> String {
-        let text = number(for: value, style: style, keepingCents: keepingCents)
+    static func string(for value: MetricValue, style: Style, keepingCents: Bool = false, truncatingDecimals: Bool = false) -> String {
+        let text = number(for: value, style: style, keepingCents: keepingCents, truncatingDecimals: truncatingDecimals)
         guard let label = value.label, !label.isEmpty else { return text }
         return "\(text) \(label)"
+    }
+
+    /// Truncate both ordinary values and abbreviated mantissas toward zero, without printing -0.
+    private static func truncatedTrayAmount(_ value: Double) -> String {
+        let integer = value.rounded(.towardZero)
+        let normalized = integer == 0 ? 0.0 : integer
+        if abs(normalized) >= 1000 {
+            return normalized.formatted(.number.notation(.compactName).precision(.fractionLength(0)).rounded(rule: .towardZero).locale(locale))
+        }
+        return normalized.formatted(.number.precision(.fractionLength(0)).locale(locale))
     }
 
     /// Dollars per million tokens for legends and tooltips — dollar formatting plus a fixed `/MTok`

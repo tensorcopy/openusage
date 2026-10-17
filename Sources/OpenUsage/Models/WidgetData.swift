@@ -249,6 +249,10 @@ struct WidgetData: Hashable {
     /// formatter the popover uses. A status badge with no number (e.g. Grok "Disabled") shows its text
     /// rather than a misleading "0".
     var menuBarValue: String {
+        menuBarValue(truncatingDecimals: false)
+    }
+
+    func menuBarValue(truncatingDecimals: Bool) -> String {
         guard hasData else { return valueText }
         if let limit, limit > 0 {
             if kind == .percent {
@@ -257,16 +261,16 @@ struct WidgetData: Hashable {
                 let percent = min(100, max(0, Int((displayedValue / limit * 100).rounded())))
                 return "\(percent)%"
             }
-            return MetricFormatter.number(displayedValue, kind: kind, style: .tray)
+            return MetricFormatter.number(displayedValue, kind: kind, style: .tray, truncatingDecimals: truncatingDecimals)
         }
         if let first = selectedValues.first {
             if let traySuffix, first.kind == .count {
-                return "\(MetricFormatter.number(first.number, kind: .count, style: .tray)) \(traySuffix)"
+                return "\(MetricFormatter.number(first.number, kind: .count, style: .tray, truncatingDecimals: truncatingDecimals)) \(traySuffix)"
             }
-            return MetricFormatter.string(for: first, style: .tray, keepingCents: menuBarKeepsCents)
+            return MetricFormatter.string(for: first, style: .tray, keepingCents: menuBarKeepsCents, truncatingDecimals: truncatingDecimals)
         }
         if let valueTextOverride { return valueTextOverride }
-        let number = MetricFormatter.number(displayedValue, kind: kind, style: .tray)
+        let number = MetricFormatter.number(displayedValue, kind: kind, style: .tray, truncatingDecimals: truncatingDecimals)
         if kind == .count, let countSuffix { return "\(number) \(countSuffix)" }
         return number
     }

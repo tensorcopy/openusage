@@ -335,6 +335,35 @@ final class DeepSeekProviderTests: XCTestCase {
         }
     }
 
+    func testMenuBarTruncationPreservesPreciseDashboardValues() async throws {
+        let (provider, store) = await refreshedStore(currency: "CNY")
+        let groups = [ProviderMetrics(provider: provider.provider, metrics: [provider.widgetDescriptors[0]])]
+        for hideDecimals in [false, true] {
+            let content = MenuBarContentBuilder.build(groups: groups, truncateDecimals: hideDecimals, data: { store.data(for: $0) })
+            XCTAssertEqual(content.groups.first?.metrics.first?.value, hideDecimals ? "¥8" : "¥8.76")
+            XCTAssertEqual(store.data(for: provider.widgetDescriptors[0]).headline, "CNY 8.76")
+            if let directory = ProcessInfo.processInfo.environment["OPENUSAGE_DEEPSEEK_SCREENSHOTS"] {
+                let suffix = hideDecimals ? "hidden" : "shown"
+                let image = try XCTUnwrap(MenuBarStripRenderer.textImage(for: content))
+                let png = try XCTUnwrap(ShareCardRenderer.pngData(from: image))
+                try png.write(to: URL(fileURLWithPath: directory).appendingPathComponent("deepseek-decimals-\(suffix).png"))
+                let control = MenuBarDecimalsSettingRow(hideDecimals: .constant(hideDecimals))
+                    .frame(width: 300).padding(8).background(Color.white).preferredColorScheme(.light)
+                // Native switches require AppKit drawing rather than SwiftUI's ImageRenderer.
+                let hosting = NSHostingView(rootView: control)
+                let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 316, height: 80), styleMask: .borderless, backing: .buffered, defer: false)
+                window.isReleasedWhenClosed = false
+                window.contentView = hosting
+                defer { window.close() }
+                hosting.layoutSubtreeIfNeeded()
+                let bitmap = try XCTUnwrap(hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds))
+                hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
+                let controlPNG = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+                try controlPNG.write(to: URL(fileURLWithPath: directory).appendingPathComponent("menubar-decimal-setting-\(suffix).png"))
+            }
+        }
+    }
+
     private func makeProvider(http: any HTTPClient, now: @escaping @Sendable () -> Date = Date.init) -> DeepSeekProvider {
         DeepSeekProvider(
             authStore: DeepSeekAuthStore(files: FakeFiles(), environment: FakeEnvironment(["DEEPSEEK_API_KEY": "test-key"])),

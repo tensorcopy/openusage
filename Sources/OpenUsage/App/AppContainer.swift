@@ -249,6 +249,7 @@ final class AppContainer {
         layout.resetToDefault()
         // The menu-bar Icon Style is a Settings preference, not part of the Customize layout reset.
         layout.menuBarStyle = .text
+        layout.menuBarTruncatesDecimals = false
         reseedEnabledProviders()
         dataStore.resetDisplaySettings()
         notificationSettings.resetToDefaults()

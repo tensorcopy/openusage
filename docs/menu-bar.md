@@ -21,6 +21,10 @@ Settings → Appearance → Icon Style:
 - **Text** — provider icon plus values; two starred metrics from the same provider stack as a labeled pair.
 - **Bars** — a compact glyph containing the first four starred metrics that have a limit (metrics without limits only appear in Text style).
 
+**Hide Menu Bar Decimals** in Settings → Appearance removes decimals from Text values by truncating
+toward zero (`¥7.99` → `¥7`, `1.9K` → `1K`). It is off by default, applies immediately, and is remembered
+across restarts. Dashboard values and API/CLI exports keep their original precision.
+
 ## Hiding usage while screen sharing
 
 Settings → Privacy → **Hide From Screen Share** (off by default). While your screen is being shared or recorded — a Zoom/Meet/Teams share, a screen recording, macOS Screen Sharing — the strip is replaced with the OpenUsage icon and wordmark, so token counts and spend never show up in front of an audience. The moment the capture ends, your starred metrics come right back. Captures you start yourself (a screen recording, for example) count too, so those get the wordmark as well.

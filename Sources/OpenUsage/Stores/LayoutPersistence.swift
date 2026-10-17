@@ -29,6 +29,7 @@ final class LayoutPersistence {
     func loadExpandOnEnable() -> [String]? { defaults.stringArray(forKey: keys.expandOnEnable) }
     func loadExpandedProviders() -> [String]? { defaults.stringArray(forKey: keys.expandedProviders) }
     func loadMenuBarStyle() -> MenuBarStyle { defaults.enumValue(forKey: keys.menuBarStyle, default: .text) }
+    func loadMenuBarTruncatesDecimals() -> Bool { defaults.bool(forKey: keys.menuBarTruncatesDecimals) }
 
     func savePlaced(_ value: [PlacedWidget]) { encode(value, forKey: keys.placed) }
     func saveProviderOrder(_ value: [String]) { encode(value, forKey: keys.providerOrder) }
@@ -49,6 +50,9 @@ final class LayoutPersistence {
     }
     func saveMenuBarStyle(_ value: MenuBarStyle) {
         defaults.set(value.rawValue, forKey: keys.menuBarStyle)
+    }
+    func saveMenuBarTruncatesDecimals(_ value: Bool) {
+        defaults.set(value, forKey: keys.menuBarTruncatesDecimals)
     }
 
     /// Fail loudly: a swallowed encode would silently lose a layout change with no signal.
@@ -82,6 +86,7 @@ final class LayoutPersistence {
         let expandOnEnable: String
         let expandedProviders: String
         let menuBarStyle: String
+        let menuBarTruncatesDecimals: String
 
         init(storageKey: String) {
             placed = storageKey
@@ -93,6 +98,7 @@ final class LayoutPersistence {
             expandOnEnable = "\(storageKey).expandOnEnable"
             expandedProviders = "\(storageKey).expandedProviders"
             menuBarStyle = "\(storageKey).menuBarStyle"
+            menuBarTruncatesDecimals = "\(storageKey).menuBarTruncatesDecimals"
         }
     }
 }

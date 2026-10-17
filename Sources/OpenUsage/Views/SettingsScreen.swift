@@ -125,6 +125,7 @@ struct SettingsScreen: View {
             row("Icon Style") {
                 picker($layout.menuBarStyle, options: MenuBarStyle.allCases, label: \.label)
             }
+            MenuBarDecimalsSettingRow(hideDecimals: $layout.menuBarTruncatesDecimals)
             row("Theme") {
                 picker($appearance, options: AppearanceSetting.allCases, label: \.label)
                     // NSApp-level so the popover panel restyles too (it ignores preferredColorScheme).

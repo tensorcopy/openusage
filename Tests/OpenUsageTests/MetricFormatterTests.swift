@@ -47,6 +47,24 @@ final class MetricFormatterTests: XCTestCase {
         XCTAssertEqual(MetricFormatter.number(95.4, kind: .percent, style: .tray), "95%")
     }
 
+    func testTruncatedTrayValuesDropDecimalsTowardZero() {
+        let cases: [(Double, String)] = [
+            (7.99, "7"), (-7.99, "-7"), (0.99, "0"), (-0.99, "0"),
+            (999.99, "999"), (1999.99, "1K"), (-1999.99, "-1K"),
+            (1_999_999, "1M")
+        ]
+        for (amount, expected) in cases {
+            for (currency, prefix) in [("CNY", "¥"), ("USD", "$"), ("EUR", "EUR ")] {
+                let value = MetricValue(number: amount, kind: .dollars, currencyCode: currency)
+                XCTAssertEqual(MetricFormatter.string(for: value, style: .tray, keepingCents: true, truncatingDecimals: true), prefix + expected)
+            }
+            XCTAssertEqual(MetricFormatter.number(amount, kind: .count, style: .tray, truncatingDecimals: true), expected)
+        }
+        let value = MetricValue(number: 7.99, kind: .dollars, currencyCode: "CNY")
+        XCTAssertEqual(MetricFormatter.string(for: value, style: .row, truncatingDecimals: true), "CNY 7.99")
+        XCTAssertEqual(MetricFormatter.number(42.9, kind: .percent, style: .tray, truncatingDecimals: true), "43%")
+    }
+
     func testPercentClampsOutOfRangeSamples() {
         // Percent is a bounded 0...100 domain: a bad sample (a provider reporting a negative or >100
         // utilization) must never print "-5%" or "130%" — it clamps to the nearest bound. (#703)

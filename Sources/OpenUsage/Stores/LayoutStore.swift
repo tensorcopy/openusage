@@ -102,6 +102,11 @@ final class LayoutStore {
         didSet { persistence.saveMenuBarStyle(menuBarStyle) }
     }
 
+    /// Settings-only text preference. Kept across Customize resets, like the icon style.
+    var menuBarTruncatesDecimals: Bool {
+        didSet { persistence.saveMenuBarTruncatesDecimals(menuBarTruncatesDecimals) }
+    }
+
     let registry: WidgetRegistry
     private let persistence: LayoutPersistence
     private let defaultMetricIDs: [String]
@@ -146,6 +151,7 @@ final class LayoutStore {
         expandedProviderIDs = initial.expandedProviderIDs
         defaultExpandedOnEnableIDs = initial.defaultExpandedOnEnableIDs
         menuBarStyle = initial.menuBarStyle
+        menuBarTruncatesDecimals = initial.menuBarTruncatesDecimals
 
         if initial.shouldPersistExpandOnEnable { persistExpandOnEnable() }
         if initial.shouldPersistExpanded { persistExpanded() }

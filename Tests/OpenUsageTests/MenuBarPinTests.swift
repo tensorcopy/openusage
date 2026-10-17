@@ -116,6 +116,19 @@ final class MenuBarPinTests: XCTestCase {
         XCTAssertEqual(reloaded.menuBarStyle, .bars)
     }
 
+    func testMenuBarDecimalPreferencePersistsAcrossRelaunchAndCustomizeReset() {
+        let defaults = makeDefaults("decimals")
+        let store = LayoutStore(registry: makeRegistry(), defaults: defaults, storageKey: "layout")
+        XCTAssertFalse(store.menuBarTruncatesDecimals)
+        store.menuBarTruncatesDecimals = true
+        store.resetToDefault()
+        XCTAssertTrue(store.menuBarTruncatesDecimals)
+        let reloaded = LayoutStore(registry: makeRegistry(), defaults: defaults, storageKey: "layout")
+        XCTAssertTrue(reloaded.menuBarTruncatesDecimals)
+        reloaded.menuBarTruncatesDecimals = false
+        XCTAssertFalse(LayoutStore(registry: makeRegistry(), defaults: defaults, storageKey: "layout").menuBarTruncatesDecimals)
+    }
+
     func testInvalidPinnedIDsDroppedOnLoad() {
         let defaults = makeDefaults("invalid")
         defaults.set(["a.m1", "ghost.metric"], forKey: "layout.menuBarPins")

@@ -25,6 +25,7 @@ time; it also reports unavailable iCloud, loading, write, and malformed-file sta
 | Setting | Options | What it does |
 |---|---|---|
 | Icon Style | Text / Bars | How starred metrics render in the menu bar. See [Menu bar](menu-bar.md). |
+| Hide Menu Bar Decimals | Off / On | Off by default. On truncates menu-bar amounts and counts toward zero, including abbreviations: `¥7.99` → `¥7`, `1.9K` → `1K`. Dashboard and exported data keep their precision. |
 | Theme | System / Light / Dark | App-wide appearance override for the popover. |
 | Density | Default / Compact | Default breathes; Compact is a real information-dense mode — text steps down one size, rows and provider sections pull together, and Customize / Settings rows tighten with them. In both, consecutive one-line metrics (Today / Yesterday / …) pull together; Compact pulls harder. |
 | Reduce Animations | Off / On | Off by default. On removes transitions, motion effects, and continuous decorative animation throughout the popover. The app also honors the macOS Reduce Motion accessibility setting. |
