@@ -12,9 +12,9 @@ Tracks the remaining balance of your DeepSeek API account, including paid and gr
 
 A currency with funds is preferred when DeepSeek returns both USD and CNY; USD wins when both have
 funds. An empty USD balance never hides a funded CNY balance. CNY amounts carry an explicit `CNY`
-label; currencies are never added together or converted. A measured zero displays as zero. Menu-bar
-pins keep cents, so balances below one dollar or yuan remain visible. These are unbounded balances,
-so there is no quota meter or reset countdown.
+label in the dashboard and `¥` in the menu bar; currencies are never added together or converted.
+A measured zero displays as zero. Menu-bar pins keep cents, so balances below one dollar or yuan
+remain visible. These are unbounded balances, so there is no quota meter or reset countdown.
 
 All three metrics are enabled by default, in the order above. Balance is Always Visible; Paid and
 Granted are On Demand. None are pinned to the menu bar by default.

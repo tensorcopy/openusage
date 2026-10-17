@@ -263,7 +263,7 @@ struct WidgetData: Hashable {
             if let traySuffix, first.kind == .count {
                 return "\(MetricFormatter.number(first.number, kind: .count, style: .tray)) \(traySuffix)"
             }
-            return MetricFormatter.string(for: first, style: menuBarKeepsCents && first.kind == .dollars ? .row : .tray)
+            return MetricFormatter.string(for: first, style: .tray, keepingCents: menuBarKeepsCents)
         }
         if let valueTextOverride { return valueTextOverride }
         let number = MetricFormatter.number(displayedValue, kind: kind, style: .tray)

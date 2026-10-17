@@ -233,7 +233,7 @@ final class DeepSeekProviderTests: XCTestCase {
         let row = store.data(for: provider.widgetDescriptors[0])
         XCTAssertEqual(row.headline, "CNY 8.76")
         XCTAssertEqual(row.unboundedDetail, "CNY 8.76 left")
-        XCTAssertEqual(row.menuBarValue, "CNY 8.76")
+        XCTAssertEqual(row.menuBarValue, "¥8.76")
         XCTAssertNil(row.limit)
         let snapshot = await provider.refresh()
         let restored = try JSONDecoder().decode(ProviderSnapshot.self, from: JSONEncoder().encode(snapshot))
@@ -280,7 +280,7 @@ final class DeepSeekProviderTests: XCTestCase {
                 groups: [ProviderMetrics(provider: provider.provider, metrics: [provider.widgetDescriptors[0]])],
                 data: { store.data(for: $0) }
             )
-            XCTAssertEqual(content.groups.first?.metrics.first?.value, currency == "USD" ? "$0.42" : "CNY 0.42")
+            XCTAssertEqual(content.groups.first?.metrics.first?.value, currency == "USD" ? "$0.42" : "¥0.42")
         }
     }
 
@@ -296,6 +296,30 @@ final class DeepSeekProviderTests: XCTestCase {
             XCTAssertNotNil(NSImage(data: png))
             if let directory = ProcessInfo.processInfo.environment["OPENUSAGE_DEEPSEEK_SCREENSHOTS"] {
                 try png.write(to: URL(fileURLWithPath: directory).appendingPathComponent("deepseek-\(currency.lowercased()).png"))
+            }
+        }
+    }
+
+    func testCompactMenuBarBalanceRendersNarrower() async throws {
+        let (provider, store) = await refreshedStore(currency: "CNY")
+        let content = MenuBarContentBuilder.build(
+            groups: [ProviderMetrics(provider: provider.provider, metrics: [provider.widgetDescriptors[0]])],
+            data: { store.data(for: $0) }
+        )
+        let group = try XCTUnwrap(content.groups.first)
+        let metric = try XCTUnwrap(group.metrics.first)
+        let previous = MenuBarContent(groups: [.init(
+            providerID: group.providerID, displayName: group.displayName, icon: group.icon,
+            metrics: [.init(id: metric.id, label: metric.label, value: "CNY 8.76",
+                            fraction: metric.fraction, isBounded: metric.isBounded, hasData: metric.hasData)]
+        )], bars: [])
+        let before = try XCTUnwrap(MenuBarStripRenderer.textImage(for: previous))
+        let after = try XCTUnwrap(MenuBarStripRenderer.textImage(for: content))
+        XCTAssertLessThan(after.size.width, before.size.width * 0.8)
+        if let directory = ProcessInfo.processInfo.environment["OPENUSAGE_DEEPSEEK_SCREENSHOTS"] {
+            for (name, image) in [("before", before), ("after", after)] {
+                let png = try XCTUnwrap(ShareCardRenderer.pngData(from: image))
+                try png.write(to: URL(fileURLWithPath: directory).appendingPathComponent("deepseek-menubar-\(name).png"))
             }
         }
     }

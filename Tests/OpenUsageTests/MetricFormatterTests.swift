@@ -26,6 +26,22 @@ final class MetricFormatterTests: XCTestCase {
         XCTAssertEqual(MetricFormatter.number(820.6, kind: .count, style: .row), "820.6")
     }
 
+    func testBalancePinsUseCompactCurrencySymbolsAndKeepCents() {
+        let cases: [(Double, String, String)] = [
+            (7.17, "7.17", "$7.17"), (0.42, "0.42", "$0.42"), (0, "0.00", "$0.00"),
+            (-0.01, "-0.01", "-$0.01"), (2059.07, "2.1K", "$2.1K")
+        ]
+        for (amount, expected, expectedUSD) in cases {
+            let cny = MetricValue(number: amount, kind: .dollars, currencyCode: "CNY")
+            let usd = MetricValue(number: amount, kind: .dollars, currencyCode: "USD")
+            XCTAssertEqual(MetricFormatter.string(for: cny, style: .tray, keepingCents: true), "¥" + expected)
+            XCTAssertEqual(MetricFormatter.string(for: usd, style: .tray, keepingCents: true), expectedUSD)
+            XCTAssertEqual(MetricFormatter.string(for: cny, style: .row), "CNY " + expected)
+        }
+        let balance = MetricValue(number: 7.17, kind: .dollars, currencyCode: "CNY")
+        XCTAssertEqual(MetricFormatter.string(for: balance, style: .full), "CNY 7.17")
+    }
+
     func testPercentRoundsToWholeInEveryStyle() {
         XCTAssertEqual(MetricFormatter.number(95, kind: .percent, style: .full), "95%")
         XCTAssertEqual(MetricFormatter.number(95.4, kind: .percent, style: .tray), "95%")

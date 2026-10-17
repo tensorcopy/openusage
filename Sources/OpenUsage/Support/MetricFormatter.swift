@@ -55,26 +55,27 @@ enum MetricFormatter {
         }
     }
 
-    /// Currency-aware bare reading for a typed value. Retain an explicit code for non-USD money so
-    /// yuan (or another currency) cannot be mistaken for dollars on any display surface.
-    static func number(for value: MetricValue, style: Style) -> String {
+    /// Currency-aware reading. CNY uses its compact symbol in the tray and an explicit code elsewhere.
+    /// Balance pins can keep cents without changing the tray's currency symbol or other money pins.
+    static func number(for value: MetricValue, style: Style, keepingCents: Bool = false) -> String {
+        let amountStyle: Style = style == .tray && keepingCents ? .row : style
         guard value.kind == .dollars, let code = value.currencyCode, code != "USD" else {
-            return number(value.number, kind: value.kind, style: style)
+            return number(value.number, kind: value.kind, style: value.kind == .dollars ? amountStyle : style)
         }
         let amount: String
         if abs(value.number) >= 1000, style != .full {
             amount = value.number.formatted(.number.notation(.compactName).precision(.fractionLength(0...1)).locale(locale))
         } else {
-            let digits = style == .tray ? 0 : 2
+            let digits = amountStyle == .tray ? 0 : 2
             amount = value.number.formatted(.number.precision(.fractionLength(digits)).locale(locale))
         }
-        return "\(code) \(amount)"
+        return style == .tray && code == "CNY" ? "¥\(amount)" : "\(code) \(amount)"
     }
 
     /// A value with its unit label appended, e.g. "772 credits". Token, dollar, and percent values
     /// carry no label and render bare ("56.9M", "$4.08", "95%") — those rows show no unit, by design.
-    static func string(for value: MetricValue, style: Style) -> String {
-        let text = number(for: value, style: style)
+    static func string(for value: MetricValue, style: Style, keepingCents: Bool = false) -> String {
+        let text = number(for: value, style: style, keepingCents: keepingCents)
         guard let label = value.label, !label.isEmpty else { return text }
         return "\(text) \(label)"
     }
