@@ -321,6 +321,17 @@ final class DeepSeekProviderTests: XCTestCase {
                 let png = try XCTUnwrap(ShareCardRenderer.pngData(from: image))
                 try png.write(to: URL(fileURLWithPath: directory).appendingPathComponent("deepseek-menubar-\(name).png"))
             }
+            let codex = MenuBarContent.Group(
+                providerID: "codex", displayName: "Codex", icon: .providerMark("codex"),
+                metrics: [
+                    .init(id: "codex.session", label: "Session", value: "42%", fraction: 0.42, isBounded: true, hasData: true),
+                    .init(id: "codex.weekly", label: "Weekly", value: "87%", fraction: 0.87, isBounded: true, hasData: true)
+                ]
+            )
+            let comparison = MenuBarContent(groups: [codex, group], bars: [])
+            let image = try XCTUnwrap(MenuBarStripRenderer.textImage(for: comparison))
+            let png = try XCTUnwrap(ShareCardRenderer.pngData(from: image))
+            try png.write(to: URL(fileURLWithPath: directory).appendingPathComponent("deepseek-codex-menubar.png"))
         }
     }
 

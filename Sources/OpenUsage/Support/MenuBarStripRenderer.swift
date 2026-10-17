@@ -155,13 +155,15 @@ private struct MenuBarPrivacyLabel: View {
 
 private struct MenuBarTextStrip: View {
     let content: MenuBarContent
+    private static let compactValueFont = Font.system(size: 9, weight: .semibold)
 
     var body: some View {
         HStack(spacing: 11) {
             ForEach(content.groups, id: \.providerID) { group in
-                HStack(spacing: 4) {
+                let compactBalance = group.providerID == "deepseek"
+                HStack(spacing: compactBalance ? 2 : 4) {
                     glyph(group.icon)
-                    metricsView(group.metrics)
+                    metricsView(group.metrics, compact: compactBalance)
                 }
             }
         }
@@ -172,20 +174,20 @@ private struct MenuBarTextStrip: View {
         .fixedSize()
     }
 
-    /// A provider's pinned values, no labels: one metric as a single large number, two stacked on two
-    /// tight lines (much narrower than side-by-side), read positionally.
+    /// DeepSeek balances use the same compact text as stacked values, even with a single pin.
+    /// Other single values keep their larger type; two values stack on tight lines, read positionally.
     @ViewBuilder
-    private func metricsView(_ metrics: [MenuBarContent.Metric]) -> some View {
+    private func metricsView(_ metrics: [MenuBarContent.Metric], compact: Bool) -> some View {
         if metrics.count <= 1 {
             Text(metrics.first?.value ?? "")
-                .font(.system(size: 12, weight: .bold))
+                .font(compact ? Self.compactValueFont : .system(size: 12, weight: .bold))
         } else {
             VStack(alignment: .trailing, spacing: -2) {
                 ForEach(metrics, id: \.id) { metric in
                     Text(metric.value)
                 }
             }
-            .font(.system(size: 9, weight: .semibold))
+            .font(Self.compactValueFont)
             .fixedSize()
         }
     }
